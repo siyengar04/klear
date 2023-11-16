@@ -26,7 +26,7 @@ import xyz.brilliant.argpt.R
 import xyz.brilliant.argpt.ui.activity.BaseActivity
 
 
-class ScanningFragment : Fragment() {
+class  ScanningFragment : Fragment() {
 
     private lateinit var parentActivity: BaseActivity
     private lateinit var deviceCloseTextView: TextView

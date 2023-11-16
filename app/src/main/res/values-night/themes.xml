@@ -34,6 +34,7 @@
         <item name="android:windowLightStatusBar">false</item>
 
     </style>
+
     <style name="AppTheme" parent="FullScreenStyle">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -49,6 +50,11 @@
 
     <style name="customTextStyle">
         <item name="android:textColor">#ffffff</item>
+    </style>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Monocle" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
 
 </resources>

@@ -1,5 +1,5 @@
 package xyz.brilliant.argpt.ui.activity
-
+//imports
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ActivityManager
@@ -37,6 +37,7 @@ import android.os.ParcelUuid
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.Settings
+import android.speech.RecognizerIntent
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -86,6 +87,7 @@ import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
+import java.util.Locale
 import java.util.UUID
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
@@ -93,7 +95,7 @@ import java.util.zip.ZipInputStream
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 
-
+//baseactivity
 class BaseActivity : AppCompatActivity() {
 
     companion object {
@@ -143,10 +145,11 @@ class BaseActivity : AppCompatActivity() {
                 fragmentManager.popBackStack(null, 0)
             }
             ft.commit()
-        }
+        }    private const val VOICE_RECOGNITION_REQUEST_CODE = 1001 // Ensure this doesn't conflict with other request codes
+
     }
 
-    private lateinit var bluetoothAdapter: BluetoothAdapter
+    public lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var recyclerView: RecyclerView
     var apiKey = ""
     var stabilityApiKey = ""
@@ -214,6 +217,8 @@ class BaseActivity : AppCompatActivity() {
         }
     }
 
+
+    //grab API keys
     fun getStoredApiKey(): String {
         val prefs = getSharedPreferences(PREFS_FILE_NAME2, Context.MODE_PRIVATE)
         return prefs.getString(PREFS_OPEN_API_KEY, "") ?: ""
@@ -337,7 +342,7 @@ class BaseActivity : AppCompatActivity() {
         Manifest.permission.BLUETOOTH,
         Manifest.permission.BLUETOOTH_ADMIN,
         Manifest.permission.FOREGROUND_SERVICE,
-       // Manifest.permission.WRITE_EXTERNAL_STORAGE
+        // Manifest.permission.WRITE_EXTERNAL_STORAGE
 
     )
 
@@ -471,42 +476,45 @@ class BaseActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
-            if (resultCode == RESULT_OK) {
 
-                checkBluetoothAndGps()
-
-            } else {
-                checkBluetoothAndGps()
-//                Toast.makeText(
-//                    this,
-//                    "Please turn on bluetooth!",
-//                    Toast.LENGTH_SHORT
-//                ).show()
+        val VOICE_RECOGNITION_REQUEST_CODE = 101
+        when (requestCode) {
+            VOICE_RECOGNITION_REQUEST_CODE -> {
+                if (resultCode == RESULT_OK && data != null) {
+                    val matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    val searchQuery = matches?.get(0) ?: ""
+                    checkBluetoothAndGps()
+                } else {
+                    checkBluetoothAndGps()
+                    // Optional: Uncomment to show a toast message
+                    // Toast.makeText(this, "Please turn on bluetooth!", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
-        else if (requestCode == REQUEST_ENABLE_GPS) {
-            if (resultCode == RESULT_OK) {
-                checkBluetoothAndGps()
-            } else {
-
-                checkBluetoothAndGps()
-//                Toast.makeText(
-//                    this,
-//                    "Please turn on GPS!",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-                // User didn't enable GPS, handle as needed
+            REQUEST_ENABLE_GPS -> {
+                if (resultCode == RESULT_OK) {
+                    checkBluetoothAndGps()
+                } else {
+                    checkBluetoothAndGps()
+                    // Optional: Uncomment to show a toast message
+                    // Toast.makeText(this, "Please turn on GPS!", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
-        else if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivityForResult(intent, REQUEST_ENABLE_GPS)
-                checkBluetoothAndGps()
-            } else {
-                getAllPermission()
+            PERMISSION_REQUEST_CODE -> {
+                if (resultCode == RESULT_OK) {
+                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    startActivityForResult(intent, REQUEST_ENABLE_GPS)
+                    checkBluetoothAndGps()
+                } else {
+                    getAllPermission()
+                }
+            }
+            VOICE_RECOGNITION_REQUEST_CODE -> {
+                if (resultCode == RESULT_OK) {
+                    data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.let { results ->
+                        val searchQuery = results[0] // Take the first result
+                        // Handle the search query as needed
+                    }
+                }
             }
         }
     }
@@ -1224,6 +1232,15 @@ class BaseActivity : AppCompatActivity() {
 
         println("JPEG image saved to: ${jpegFile.absolutePath}")
         return jpegFile.absolutePath
+    }
+    fun startVoiceRecognition() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now to search")
+        }
+        val VOICE_RECOGNITION_REQUEST_CODE = 101
+        startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE)
     }
 
 
@@ -2431,5 +2448,7 @@ class BaseActivity : AppCompatActivity() {
             }
         }
     }
-
+    private fun getGoogleResult(file:File){
+        var client = OkHttpClient()
+    }
 }
